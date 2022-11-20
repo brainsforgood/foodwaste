@@ -5,10 +5,20 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:Foodwaste"
     Shell.FlyoutBehavior="Disabled">
-
-    <ShellContent
+    <TabBar>
+        <Tab Title="Home">
+            <ShellContent
         Title="Home"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
+        </Tab>
+        <Tab Title="Recepten">
+            <ShellContent
+        Title="Recept"
+        ContentTemplate="{DataTemplate local:ReceptPage}"
+        Route="ReceptPage" />
+        </Tab>
+    </TabBar>
+    
 
 </Shell>
