@@ -35,6 +35,13 @@
                 Clicked="OnCounterClicked"
                 HorizontalOptions="Center" />
 
+            <Button
+                x:Name="ReadBtn"
+                Text="Read"
+                SemanticProperties.Hint="Read the json file"
+                Clicked="OnRead"
+                HorizontalOptions="Center" />
+
         </VerticalStackLayout>
     </ScrollView>
 
