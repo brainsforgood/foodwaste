@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="../buildMultiTargeting/Exp.Date.Recognition.props" />
-</Project>
