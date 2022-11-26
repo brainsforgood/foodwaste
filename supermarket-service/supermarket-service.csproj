@@ -9,6 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EntityFramework" Version="6.4.4" />
+    <PackageReference Include="MySql.Data.EntityFramework" Version="8.0.31" />
+    <PackageReference Include="MySql.EntityFrameworkCore" Version="6.0.7" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 

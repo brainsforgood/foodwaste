@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace SupermarketCSharp
 {
@@ -18,19 +19,41 @@ namespace SupermarketCSharp
         public string BaseSearchUrl = "https://www.ah.nl/zoeken/api/products/search?taxonomySlug=";
         public string MaxSize = "&size=1500";
     }
-    
-    class AHProduct {
+    class FoodContext : DbContext  {
+        public FoodContext() : base()
+        {
+
+        }
+
+        public DbSet<AHProduct> Products { get; set; }
+        public DbSet<Gtin> Gtins { get; set; }
+
+        string connectionString = "server=localhost;port=3306;database=foodwaste;user=root;password=root";
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseMySQL(connectionString);
+        }
+
+    }
+
+    public class AHProduct {
        
-        public int Id  {get;set;}
-        public string name {get;set;}
+        public int ID  {get;set;}
+        public int ProductId {get;set;}
+        public string Name {get;set;}
         public string Title  {get;set;  }
         public string ImageUrl  {get;set; }
         public string Brand  {get;set; }
-        public IList<ulong> Gtins  {get;set; }
         public int MinBestBeforeDays {get;set; }
 
     }
 
+    class Gtin {
+        public int ID {get;set; }
+        public ulong Code {get;set; }
+        public int ProductId {get;set; }
+    }
+    
     class Program
     {
         private static readonly HttpClient client = new HttpClient();
@@ -40,67 +63,72 @@ namespace SupermarketCSharp
             string withoutBrand = title.Remove(pos, brand.Length);
             return withoutBrand.Trim().ToLower(); 
         }
-      
+     
         static async Task Main(string[] args)
         {
-            var config = new AHConfiguration();
-        
+            var config = new AHConfiguration();      
             var client = new HttpClient();
 
-            foreach (var pType in config.Taxonomy) 
+            using (FoodContext contextDB = new FoodContext())
             {
-                var url = config.BaseSearchUrl + pType + config.MaxSize;
-                var result = await client.GetAsync(url);
+                // Create database if not exists
+                contextDB.Database.EnsureCreated();                    
+                contextDB.Database.OpenConnection();
 
-                var content = await result.Content.ReadAsStringAsync();
-                var dynamicObject = JsonConvert.DeserializeObject<dynamic>(content)!;
-            
-                var product = new AHProduct();
-                System.Console.WriteLine("product group {0} #cards: {1} ", pType, ((JArray)dynamicObject.cards).Count);
-                              
-                foreach (var c in dynamicObject.cards)
+                List<AHProduct> products = new List<AHProduct>();
+ 
+                foreach (var pType in config.Taxonomy) 
                 {
-                    product.Id = c.id;
-                    if (((JArray)c.products).Count > 0 ) {
-                        var p1 = c.products[0];
-                        if (p1.title != null) {
-                            product.Title = p1.title;
-                        }
-                        if (((JArray)p1.images).Count > 0 ) {
-                            product.ImageUrl = p1.images[0].url;
-                        }
-                        if (p1.brand != null) {
-                            product.Brand =   p1.brand;
-                        }
-                        if (((JArray)p1.gtins).Count > 0 ) {
-                            product.Gtins = p1.gtins.ToObject<List<ulong>>();
-                        }
-                        if (p1.minBestBeforeDays != null) {
-                            product.MinBestBeforeDays = p1.minBestBeforeDays;
-                        }
+                    var url = config.BaseSearchUrl + pType + config.MaxSize;
+                    var result = await client.GetAsync(url);
 
-                        product.name = ToName(product.Title,product.Brand);
+                    var content = await result.Content.ReadAsStringAsync();
+                    var dynamicObject = JsonConvert.DeserializeObject<dynamic>(content)!;
+                
+
+                    System.Console.WriteLine("product group {0} #cards: {1} ", pType, ((JArray)dynamicObject.cards).Count);
+                    
+                
+                    foreach (var c in dynamicObject.cards)
+                    {
+                        var product = new AHProduct();
+                        product.ProductId = c.id;
+                        if (((JArray)c.products).Count > 0 ) {
+                            var p1 = c.products[0];
+                            if (p1.title != null) {
+                                product.Title = p1.title;
+                            }
+                            product.ImageUrl = "";
+                            if (((JArray)p1.images).Count > 0 ) {
+                                product.ImageUrl = p1.images[0].url;
+                            }
+                            if (p1.brand != null) {
+                                product.Brand =   p1.brand;
+                            }
+                            if (((JArray)p1.gtins).Count > 0 ) {
+                                List<Gtin> gtins = new List<Gtin>();
+                                foreach (var g in p1.gtins) {
+                                    var gtin = new Gtin();
+                                    gtin.Code = g;
+                                    gtin.ProductId = product.ProductId;
+                                    gtins.Add(gtin);
+                                }
+                                contextDB.Gtins.AddRange(gtins);
+                            }
+                            product.MinBestBeforeDays = 0;
+                            if (p1.minBestBeforeDays != null) {
+                                product.MinBestBeforeDays = p1.minBestBeforeDays;
+                            }
+
+                            product.Name = ToName(product.Title,product.Brand);
+                            products.Add(product);
+                        }
                     }
-
-                    // string jsonString = JsonConvert.SerializeObject(product);
-                    // System.Console.WriteLine("{0} ", jsonString);
                 }
+                contextDB.Products.AddRange(products);
+                contextDB.SaveChanges();
+                contextDB.Database.CloseConnection();
             }
         }
-
-
     }
 }
-
-// https://www.ah.nl/zoeken/api/products/search?taxonomySlug=aardappel-groente-fruit&size=36
-// https://www.ah.nl/zoeken/api/products/search?taxonomySlug=zuivel-plantaardig-en-eieren&size= 36
-// https://www.ah.nl/zoeken/api/products/search?taxonomySlug=pasta-rijst-en-wereldkeuken&size=36
-// https://www.ah.nl/zoeken/api/products/search?taxonomySlug=vlees-kip-vis-vega&size=36
-// https://www.ah.nl/zoeken/api/products/search?taxonomySlug=kaas-vleeswaren-tapas&size=36
-// https://www.ah.nl/zoeken/api/products/search?taxonomySlug=bakkerij-en-banket&size=36
-// https://www.ah.nl/zoeken/api/products/search?taxonomySlug=soepen-sauzen-kruiden-olie&size=36
-// https://www.ah.nl/zoeken/api/products/search?taxonomySlug=ontbijtgranen-en-beleg&size=36
-
-
-
-// https://www.ah.nl/zoeken/api/products/product?webshopId=54074
