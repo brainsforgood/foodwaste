@@ -1,6 +1,6 @@
 
 using System;
-using Products;
+using Models;
 using Repositories;
 namespace BackendAPICSharp
 {
@@ -10,7 +10,7 @@ namespace BackendAPICSharp
         {
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddControllers();
-            builder.Services.AddScoped<IRepository, Repository>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
             var app = builder.Build();
 
             app.MapControllers();

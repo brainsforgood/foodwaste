@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Products;
+using Models;
 using Repositories;
 
 namespace Controllers;
@@ -8,16 +8,21 @@ namespace Controllers;
 [Route("api/[controller]")]
 public class ProductController : ControllerBase
 {
-    private IRepository repository;
-    public ProductController(IRepository repo) => repository = repo;
+    private IProductRepository repository;
+    public ProductController(IProductRepository repo) => repository = repo;
 
-    [HttpGet()]
-    public IEnumerable<Product> Get() => repository.Products;
+    // [HttpGet()]
+    // public IEnumerable<Product> Get() => repository.Products;
+    
+    public IEnumerable<Product> Get() 
+    {
+        return repository.ListProducts();
+    }
  
     [HttpGet("{id}")]
     public ActionResult<Product> Get(int id)
     {
-        return Ok(repository[id]);
+        return Ok(repository.GetProduct(id));
     }
     
 

@@ -2,15 +2,36 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Products;
+using Models;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
  
 namespace Repositories
 {
-    public class Repository: IRepository
+    class ProductContext : DbContext  {
+        public ProductContext() : base()
+        {
+
+        }
+
+        public DbSet<Product> Products { get; set; }
+  
+
+        string connectionString = "server=localhost;port=3306;database=foodwaste;user=root;password=root";
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseMySQL(connectionString);
+        }
+
+    }
+
+    public class ProductRepository: IProductRepository
     {
+
         private Dictionary<int, Product> items;
          
-        public Repository()
+        public ProductRepository()
         {
             items = new Dictionary<int, Product>();
             new List<Product> {
@@ -19,10 +40,27 @@ namespace Repositories
                 new Product {ID=3, Name = "melk", Brand = "Optimel", ProductId=9012 }
                 }.ForEach(r => AddProduct(r));
         }
-        public Product this[int id] => items.ContainsKey(id) ? items[id] : null;
-         
-        public IEnumerable<Product> Products => items.Values;
-         
+ 
+        public Product GetProduct(int id) {
+            using (ProductContext contextDB = new ProductContext())
+            {                  
+                contextDB.Database.OpenConnection();
+                var product = contextDB.Products.Where(p => p.ID == id).First();
+                contextDB.Database.CloseConnection();
+                return product;
+            }
+        }
+
+        public IEnumerable<Product> ListProducts() {
+            using (ProductContext contextDB = new ProductContext())
+            {                  
+                contextDB.Database.OpenConnection();
+                var products = contextDB.Products.Where(p => p.ID > 0);
+                contextDB.Database.CloseConnection();
+                return products;
+            }
+        }
+                  
         public Product AddProduct(Product product)
         {
             if (product.ID == 0)
