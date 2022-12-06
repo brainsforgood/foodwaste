@@ -15,4 +15,9 @@ namespace Repositories
         IEnumerable<Product> ListProducts();
         void DeleteProduct(int id);
     }
+
+    public interface IRecipeRepository
+    {
+        Task<Recipe> GetRecipe(string product);
+    }
 }

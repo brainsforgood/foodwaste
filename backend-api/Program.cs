@@ -11,6 +11,7 @@ namespace BackendAPICSharp
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddControllers();
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
             var app = builder.Build();
 
             app.MapControllers();
