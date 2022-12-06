@@ -16,6 +16,7 @@ namespace Repositories
         }
 
         public DbSet<Product> Products { get; set; }
+        public DbSet<Gtin> Gtins { get; set; }
   
 
         string connectionString = "server=localhost;port=3306;database=foodwaste;user=root;password=root";
@@ -33,20 +34,23 @@ namespace Repositories
          
         public ProductRepository()
         {
-            items = new Dictionary<int, Product>();
-            new List<Product> {
-                new Product {ID=1, Name = "komkommer", Brand = "AH", ProductId=1234 },
-                new Product {ID=2, Name = "volkorenbrood", Brand = "AH", ProductId=5678 },
-                new Product {ID=3, Name = "melk", Brand = "Optimel", ProductId=9012 }
-                }.ForEach(r => AddProduct(r));
+
         }
  
         public Product GetProduct(int id) {
             using (ProductContext contextDB = new ProductContext())
             {                  
-                contextDB.Database.OpenConnection();
                 var product = contextDB.Products.Where(p => p.ID == id).First();
-                contextDB.Database.CloseConnection();
+                return product;
+            }
+        }
+
+         public Product GetProductByGtin(ulong code) {
+            using (ProductContext contextDB = new ProductContext())
+            {       
+                System.Console.WriteLine("code: {0} ", code);         
+                var gtin = contextDB.Gtins.Where(g => g.Code == code).First();
+                var product = contextDB.Products.Where(p => p.ProductId == gtin.ProductId).First();
                 return product;
             }
         }
@@ -54,9 +58,7 @@ namespace Repositories
         public IEnumerable<Product> ListProducts() {
             using (ProductContext contextDB = new ProductContext())
             {                  
-                contextDB.Database.OpenConnection();
-                var products = contextDB.Products.Where(p => p.ID > 0);
-                contextDB.Database.CloseConnection();
+                List<Product> products = contextDB.Products.Where(p => p.ID > 0).ToList();   
                 return products;
             }
         }

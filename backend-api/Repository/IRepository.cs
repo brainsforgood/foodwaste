@@ -8,11 +8,10 @@ namespace Repositories
 {
     public interface IProductRepository
     {
-        // IEnumerable<Product> Products { get; }
-        // Product this[int id] { get; }
         Product AddProduct(Product product);
         Product UpdateProduct(Product product);
         Product GetProduct(int id);
+        Product GetProductByGtin(ulong code);
         IEnumerable<Product> ListProducts();
         void DeleteProduct(int id);
     }
