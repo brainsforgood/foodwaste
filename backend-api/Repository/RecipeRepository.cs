@@ -25,12 +25,18 @@ namespace Repositories
 
         }
  
-        public async Task<Recipe> GetRecipe(string product) {
-            List<Recipe> r = await CallSuperCook();
-            return r[0];
+        public async Task<List<Recipe>> GetRecipe(string product) {
+            List<Recipe> r = await CallSuperCook(product);
+            System.Console.WriteLine("recipes {0} ", r);
+            if (r == null) {
+                return null;
+            } else {
+                return r;
+            }
+            
         }
 
-        static async Task<List<Recipe>> CallSuperCook()
+        static async Task<List<Recipe>> CallSuperCook(string product)
         {
 
 
@@ -39,12 +45,12 @@ namespace Repositories
                 {"needsimage","1"},
                 {"lang","nl"},
                 {"app","1"},
-                {"kitchen","tomatenpuree,komkommer,gember"},
+                // {"kitchen","tomatenpuree,komkommer,gember"},
                 {"start","0"},
                 {"cv","2"},
                 {"fave","false"}
             };
-
+            supercookValues.Add("kitchen", product);
 
             try
             {
@@ -72,6 +78,7 @@ namespace Repositories
                     dynamicObject = JsonConvert.DeserializeObject<dynamic>(supercookRecipe)!;
                     recipe[i].URL = dynamicObject.recipe.hash;
                     //Console.WriteLine(dynamicObject.recipe.hash);
+                    Console.WriteLine(recipe[i].Title);
                 } 
 
                 return recipe;

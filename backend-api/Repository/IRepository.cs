@@ -18,6 +18,6 @@ namespace Repositories
 
     public interface IRecipeRepository
     {
-        Task<Recipe> GetRecipe(string product);
+        Task<List<Recipe>> GetRecipe(string product);
     }
 }
