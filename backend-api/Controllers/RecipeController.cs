@@ -4,6 +4,7 @@ using Repositories;
 
 namespace Controllers;
 
+[ApiKeyAuth("kW4BE3kvMb")]
 [ApiController]
 [Route("api/[controller]")]
 public class RecipeController : ControllerBase
