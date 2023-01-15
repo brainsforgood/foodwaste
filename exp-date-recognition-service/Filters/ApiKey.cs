@@ -18,7 +18,6 @@ public class ApiKeyAttribute : Attribute, IAuthorizationFilter
   public void OnAuthorization(AuthorizationFilterContext context)
   {
     var submittedApiKey = GetSubmittedApiKey(context.HttpContext);
-
     var apiKey = GetApiKey(context.HttpContext);
 
     if (!IsApiKeyValid(apiKey, submittedApiKey))
@@ -34,7 +33,8 @@ public class ApiKeyAttribute : Attribute, IAuthorizationFilter
 
   private static string GetApiKey(HttpContext context)
   {
-    return Environment.GetEnvironmentVariable("API_KEY");
+    var appSettings = context.RequestServices.GetRequiredService<IConfiguration>();
+    return appSettings.GetValue<string>("API_KEY");
   }
 
   private static bool IsApiKeyValid(string apiKey, string submittedApiKey)
@@ -42,7 +42,6 @@ public class ApiKeyAttribute : Attribute, IAuthorizationFilter
     if (string.IsNullOrEmpty(submittedApiKey)) return false;
 
     var apiKeySpan = MemoryMarshal.Cast<char, byte>(apiKey.AsSpan());
-
     var submittedApiKeySpan = MemoryMarshal.Cast<char, byte>(submittedApiKey.AsSpan());
 
     return CryptographicOperations.FixedTimeEquals(apiKeySpan, submittedApiKeySpan);
