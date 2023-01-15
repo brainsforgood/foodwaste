@@ -1,2 +1,2 @@
-export {ProductScreen} from './ProductScreen';
-export {PantryScreen} from './PantryScreen';
+export { ProductScreen } from './ProductScreen';
+export { PantryScreen } from './Pantry/PantryScreen';
