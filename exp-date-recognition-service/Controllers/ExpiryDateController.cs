@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using Exp.Date.Recognition.Filters;
 
 namespace Exp.Date.Recognition.Controllers;
 
@@ -14,6 +15,7 @@ public class GetExpiryDateResponse
   public DateTime ExpDate { get; set; }
 }
 
+[ApiKey]
 [ApiController]
 [Route("api/[controller]")]
 public class ExpiryDateController : ControllerBase
