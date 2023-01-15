@@ -2,7 +2,7 @@ import { View, Text, Button, StyleSheet } from "react-native";
 import React, { useState, useEffect } from "react";
 import { BarCodeScanner } from "expo-barcode-scanner";
 
-export function ProductScreen() {
+export const BarcodeScanner = ({ dataCallback }) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
 
@@ -17,6 +17,8 @@ export function ProductScreen() {
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned(true);
 
+    dataCallback(data);
+
     //todo make backend call
     fetch(`http://34.68.16.30:3000/api/product/gtin/${data}`, {
       method: "GET",
@@ -28,7 +30,7 @@ export function ProductScreen() {
     })
       .then((res) => res.json())
       .then((json) => {
-        alert(json.name);
+        dataCallback(json.name);
       });
 
     // alert(`Bar code with type ${type} and data ${data} has been scanned!`);
@@ -41,7 +43,7 @@ export function ProductScreen() {
     return <Text>Permissions not granted</Text>;
   }
   return (
-    <View style={styles.container}>
+    <View style={styles.modalView}>
       <BarCodeScanner
         onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
         style={StyleSheet.absoluteFillObject}
@@ -51,12 +53,27 @@ export function ProductScreen() {
       )}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: "column",
     justifyContent: "center",
+  },
+  modalView: {
+    margin: 1,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 50,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });
